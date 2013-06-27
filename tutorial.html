@@ -1,0 +1,137 @@
+
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script>
+	var Tutorial = {
+		step: -1,
+		steps: 0,
+		stepData:[],
+		
+		setStep: function(step){
+			Tutorial.step = step;
+		},
+		
+		resume: function(){		
+			Tutorial.loadStep(Tutorial.step);
+		},
+		
+		cancelStep: function(){
+			Tutorial.unloadStep(Tutorial.step);
+			Tutorial.step--;
+		},
+		
+		registerStep: function(obj){
+   
+			Tutorial.stepData.push(obj);
+			Tutorial.steps++;
+			return Tutorial.steps-1;
+		},
+		
+		//Private methods begin here
+		loadStep: function(step){
+			if (Tutorial.stepData[Tutorial.step].req()){
+				Tutorial.stepData[Tutorial.step].load();
+				
+$(Tutorial.stepData[Tutorial.step].obj).bind(Tutorial.stepData[Tutorial.step].action,function(){
+					Tutorial.completeStep();
+				});
+			}
+		},
+		unloadStep: function(){
+			$(Tutorial.stepData[Tutorial.step].obj).unbind(Tutorial.stepData[Tutorial.step].action);
+			Tutorial.stepData[Tutorial.step].unload();
+		},
+		
+		completeStep: function(){
+			Tutorial.unloadStep(Tutorial.step);
+			Tutorial.step++;
+			if (Tutorial.step < Tutorial.steps){
+				//TODO: Add ajax call here to save the step to the database.
+				Tutorial.loadStep(Tutorial.step);
+			}
+		}
+	}
+	
+	var Step = function(){
+		return {
+			step: null,
+			load: null,
+			unload: null,
+			obj: null,
+			action: null,
+			req: function(){ return true; },
+			
+			make: function(load,unload,obj,action,req){
+				var action = typeof action !== 'undefined' ? action : 'click';
+				var req = typeof req !== 'undefined' ? req : (function(){ return true; });
+				this.step = Tutorial.steps;
+				this.load = load;
+				this.unload = unload;
+				this.obj = obj;
+				this.action = action;
+				this.req = req;
+				return this;
+			},
+			setLoad: function(load){ this.load = load; return this;},
+			setUnload: function(unload){ this.unload = unload; return this;},
+			setObj: function(obj){ this.obj = obj; return this;},
+			setAction: function(action){ this.action = action; return this;},
+			setRequirement: function(req){ this.req = req; return this; },
+			
+			register: function(){
+				Tutorial.registerStep(this);
+			}
+		};
+	}
+	
+	
+	$(document).ready(function() {
+	
+		// Step 1.
+		(new Step()).make(
+			function(){$("div.step1").text("Click me!!");}, 
+			function(){$("div.step1").text("CLICKED").css("background-color","orange");},
+			$("div.step1"), //Completion object
+			"click" //Completion event
+		).register();
+	
+		// Step 2.
+		(new Step()).make(
+			function(){$("div.step2").text("Click me!!");}, 
+			function(){$("div.step2").text("CLICKED").css("background-color","orange");},
+			$("div.step2"), //Completion object
+			"click" //Completion event (optional)
+		).register();
+		
+		// Step 3.
+		(new Step()).make(
+			function(){$("div.step3").text("Click me!!");}, 
+			function(){$("div.step3").text("CLICKED").css("background-color","orange");},
+			$("div.step3") //Completion object
+		).register();
+		
+		// Step 4.
+		(new Step()).make(
+			function(){$("div.step4").text("Click me!!");}, 
+			function(){$("div.step4").text("CLICKED").css("background-color","orange");},
+			$("div.step4") //Completion object
+		).register();
+		
+		
+		Tutorial.setStep(0);
+		Tutorial.resume();
+	
+	});
+
+</script>
+</head>
+<body>
+	<div style="width:100px;height:100px;background-color:red;" class="step1">HELLO</div>
+	<div style="width:100px;height:100px;background-color:blue;" class="step2">HELLO</div>
+	<div style="width:100px;height:100px;background-color:green;" class="step3">HELLO</div>
+	<div style="width:100px;height:100px;background-color:yellow;" class="step4">HELLO</div>
+</body>
+</html>
+
+
